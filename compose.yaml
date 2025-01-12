@@ -1,0 +1,45 @@
+name: Nextcloud Server
+
+services:
+  reverse-proxy:
+    build:
+      context: .
+      dockerfile: httpd.Dockerfile
+    ports:
+      - "${HOST_ADDRESS}:443:443"
+    restart: always
+  database:
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "postgres"]
+      start_period: 10s
+      start_interval: 2s
+    image: postgres
+    restart: always
+    volumes:
+      - database:/var/lib/postgresql/data
+  nextcloud:
+    depends_on:
+      database:
+        condition: service_healthy
+        restart: true  
+    healthcheck:
+      test: ["CMD-SHELL", "curl --head --silent --fail localhost:80 || exit 1"]
+      start_period: 10m
+      start_interval: 2s
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=database
+      - OVERWRITEHOST=${HOST_ADDRESS}
+      - OVERWRITEPROTOCOL=https
+    image: nextcloud
+    restart: always
+    volumes:
+      - nextcloud:/var/www/html
+
+volumes:
+  database:
+  nextcloud:
