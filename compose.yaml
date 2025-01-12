@@ -36,6 +36,7 @@ services:
       - TRUSTED_PROXIES=${HOST_ADDRESS}
       - OVERWRITEHOST=${HOST_ADDRESS}
       - OVERWRITEPROTOCOL=https
+      - PHP_UPLOAD_LIMIT=${PHP_UPLOAD_LIMIT:-512M}
     image: nextcloud
     restart: always
     volumes:
