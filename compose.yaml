@@ -15,7 +15,7 @@ services:
       test: ["CMD-SHELL", "pg_isready", "-d", "postgres"]
       start_period: 10s
       start_interval: 2s
-    image: postgres
+    image: postgres:16.6
     restart: always
     volumes:
       - database:/var/lib/postgresql/data
@@ -33,8 +33,10 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_HOST=database
+      - TRUSTED_PROXIES=${HOST_ADDRESS}
       - OVERWRITEHOST=${HOST_ADDRESS}
       - OVERWRITEPROTOCOL=https
+      - PHP_UPLOAD_LIMIT=${PHP_UPLOAD_LIMIT:-512M}
     image: nextcloud
     restart: always
     volumes:
