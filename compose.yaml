@@ -19,16 +19,27 @@ services:
     restart: always
     volumes:
       - database:/var/lib/postgresql/data
+  memory-cache:
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 10s
+      start_interval: 2s
+    image: redis
+    restart: always
   nextcloud:
     depends_on:
       database:
         condition: service_healthy
-        restart: true  
+        restart: true
+      memory-cache:
+        condition: service_healthy
+        restart: true
     healthcheck:
       test: ["CMD-SHELL", "curl --head --silent --fail localhost:80 || exit 1"]
       start_period: 10m
       start_interval: 2s
     environment:
+      - REDIS_HOST=memory-cache
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
